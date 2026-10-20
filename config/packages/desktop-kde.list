@@ -1,0 +1,18 @@
+# KDE Plasma
+kde-plasma-desktop
+plasma-nm
+plasma-pa
+plasma-discover
+plasma-discover-backend-flatpak
+konsole
+dolphin
+kate
+ark
+okular
+gwenview
+kde-spectacle
+kdeconnect
+breeze-gtk-theme
+kde-config-gtk-style
+# On-screen keyboard (System Settings > Keyboard > Virtual Keyboard)
+maliit-keyboard

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cherry Systems</title>
+  <meta name="description" content="Cherry Systems is a small team that builds Linux distributions, and the apps and software that go with them.">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" href="/logo.svg">
+  <meta name="theme-color" content="#c81040">
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><img src="/logo.svg" alt="">Cherry Systems</a>
+  <a href="/os/">Cherry OS</a>
+  <a href="/store/">Cherry Store</a>
+  <a href="/move/">Cherry Move</a>
+  <a href="/products/gamebox/">Gamebox</a>
+  <a href="https://github.com/Cherry-Systems">GitHub</a>
+</nav>
+<main>
+  <section class="hero">
+    <img src="/logo.svg" alt="">
+    <h1>Cherry Systems</h1>
+    <p>A small team that builds Linux distributions, and the apps and software that go with them.</p>
+  </section>
+
+  <h2>What we make</h2>
+  <div class="grid" id="products">
+    <a class="card" href="/os/">
+      <img class="icon" src="/logo.svg" alt="">
+      <h3>Cherry OS</h3>
+      <p>Our Linux distribution, based on Debian.</p>
+      <span class="more">About Cherry OS →</span>
+    </a>
+    <a class="card" href="/store/">
+      <img class="icon" src="/images/cherry-store.svg" alt="">
+      <h3>Cherry Store</h3>
+      <p>The app store for Cherry OS, also available for other Debian-based Linux.</p>
+      <span class="more">About Cherry Store →</span>
+    </a>
+    <a class="card" href="/move/">
+      <img class="icon" src="/images/cherry-move.svg" alt="">
+      <h3>Cherry Move</h3>
+      <p>Brings your files over from your old computer.</p>
+      <span class="more">About Cherry Move →</span>
+    </a>
+  </div>
+
+  <h2>About us</h2>
+  <p>Cherry Systems puts together operating systems. We start from a solid Linux base, add our own apps,
+    tools and artwork, and make the whole thing ready to install and use. We also make software for
+    those systems, and some of it runs on other Linux distributions too.</p>
+</main>
+<footer>Cherry Systems · <a href="https://github.com/Cherry-Systems">github.com/Cherry-Systems</a></footer>
+<script>
+fetch("/products.json").then(r => r.ok ? r.json() : []).then(list => {
+  const grid = document.getElementById("products");
+  for (const p of list) {
+    const card = document.createElement("a");
+    card.className = "card";
+    card.href = p.url;
+    if (p.icon) {
+      const icon = document.createElement("img");
+      icon.className = "icon";
+      icon.src = p.icon;
+      icon.alt = "";
+      card.append(icon);
+    }
+    const name = document.createElement("h3");
+    name.textContent = p.name;
+    const tagline = document.createElement("p");
+    tagline.textContent = p.tagline;
+    const more = document.createElement("span");
+    more.className = "more";
+    more.textContent = `About ${p.name} →`;
+    card.append(name, tagline, more);
+    grid.append(card);
+  }
+}).catch(() => {});
+</script>
+</body>
+</html>

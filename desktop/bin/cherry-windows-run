@@ -1,0 +1,81 @@
+#!/bin/sh
+# Runs Windows programs with Wine, like any other app.
+#   cherry-windows-run FILE.exe|FILE.msi   run or install (installed programs appear in the app menu)
+#   cherry-windows-run --package NAME IDX  start a Windows app installed from the Cherry Store
+#   cherry-windows-run --settings          Windows settings (winecfg)
+#   cherry-windows-run --uninstaller       add/remove Windows programs
+set -u
+
+notify() { notify-send -a "Windows apps" -i wine "$1" "${2:-}" 2>/dev/null || true; }
+
+# Creates a Wine "Windows" folder the first time. Mono (.NET) and Gecko (web views) ship with Cherry OS,
+# so this needs no internet and no questions.
+ensure_prefix() {
+  if [ ! -f "$WINEPREFIX/system.reg" ]; then
+    notify "Setting up Windows support" "First time only — this takes about a minute."
+    wineboot -i >/dev/null 2>&1
+    wineserver -w 2>/dev/null
+  fi
+}
+
+export WINEDEBUG="${WINEDEBUG:--all}"
+
+case "${1:-}" in
+  --settings) export WINEPREFIX="${WINEPREFIX:-$HOME/.wine}"; ensure_prefix; exec winecfg ;;
+  --uninstaller) export WINEPREFIX="${WINEPREFIX:-$HOME/.wine}"; ensure_prefix; exec wine uninstaller ;;
+  --package)
+    name="$2"; idx="${3:-0}"
+    appdir="/opt/$name"
+    record="$appdir/cherry.json"
+    [ -f "$record" ] || { notify "$name isn't installed"; exit 1; }
+    # Each store app gets its own Windows folder, so apps can't break each other.
+    export WINEPREFIX="$HOME/.local/share/cherry/wine/$name"
+    mkdir -p "$WINEPREFIX"
+    ensure_prefix
+    eval "$(python3 - "$record" "$idx" <<'PY'
+import json, shlex, sys
+m = json.load(open(sys.argv[1]))
+w = m.get("windows", {})
+apps = m.get("apps", [])
+idx = int(sys.argv[2])
+exe = (apps[idx].get("exec") if idx < len(apps) else None) or w.get("exe", "")
+print(f"exe={shlex.quote(exe)}")
+print(f"installer={shlex.quote(w.get('installer', ''))}")
+print(f"installer_args={shlex.quote(w.get('installer_args', ''))}")
+print(f"version={shlex.quote(m['version'])}")
+PY
+)"
+    marker="$WINEPREFIX/.cherry-installed-$version"
+    if [ -n "$installer" ] && [ ! -f "$marker" ]; then
+      notify "Installing $name" "Getting it ready for its first launch…"
+      # shellcheck disable=SC2086
+      (cd "$appdir" && wine "$appdir/$installer" $installer_args) && wineserver -w && touch "$marker"
+    fi
+    case "$exe" in
+      [Cc]:*) path="$WINEPREFIX/drive_c/$(printf '%s' "${exe#??}" | sed 's|\\|/|g; s|^/||')" ;;
+      *) path="$appdir/$exe" ;;
+    esac
+    cd "$(dirname "$path")" 2>/dev/null || true
+    exec wine "$path"
+    ;;
+  "") exec cherry-center --page=windows ;;
+esac
+
+file="$1"
+export WINEPREFIX="${WINEPREFIX:-$HOME/.wine}"
+ensure_prefix
+cd "$(dirname "$file")" 2>/dev/null || true
+case "$file" in
+  *.msi|*.MSI)
+    notify "Installing $(basename "$file")" "It will appear in your app menu when it's done."
+    wine msiexec /i "$file"
+    ;;
+  *)
+    base=$(basename "$file" | tr 'A-Z' 'a-z')
+    case "$base" in
+      *setup*|*install*) notify "Installing $(basename "$file")" "Installed programs appear in your app menu." ;;
+    esac
+    wine start /wait /unix "$file"
+    ;;
+esac
+wineserver -w 2>/dev/null

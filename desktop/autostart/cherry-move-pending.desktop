@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Cherry Move restore
+Comment=Restores files chosen while installing Cherry OS
+Exec=cherry-move --restore-pending
+NoDisplay=true
+X-GNOME-Autostart-Delay=6

@@ -1,0 +1,98 @@
+# Installed in every build. One or more packages per line; "#" starts a comment.
+
+# Kernel, init and live-boot machinery
+linux-image-amd64
+systemd-sysv
+live-boot
+live-config
+live-config-systemd
+
+# Boot loading screen (theme in overlay/usr/share/plymouth/themes/cherry)
+plymouth
+plymouth-label
+
+# Hardware support
+firmware-linux-free
+firmware-linux-nonfree
+firmware-misc-nonfree
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-brcm80211
+firmware-sof-signed
+amd64-microcode
+intel-microcode
+# Nvidia: which driver supports which card, and approving the driver's Secure Boot key (hooks/35-nvidia.sh)
+nvidia-detect
+mokutil
+bluez
+# Tablets and 2-in-1s: screen rotation and light sensors, pens (X11 desktops; Wayland has them built in)
+iio-sensor-proxy
+xserver-xorg-input-wacom
+# Cameras: the Cheese app, and laptops' built-in cameras that need libcamera
+cheese
+pipewire-libcamera
+cups
+printer-driver-all
+system-config-printer
+
+# Core userland
+sudo
+locales
+tzdata
+console-setup
+keyboard-configuration
+network-manager
+ca-certificates
+curl
+wget
+nano
+less
+htop
+bash-completion
+zip
+unzip
+p7zip-full
+git
+gh
+xdg-user-dirs
+xdg-utils
+udisks2
+gvfs-backends
+pipewire-audio
+wireplumber
+
+# Updates: security fixes install themselves (hooks/70-updates.sh)
+unattended-upgrades
+apt-listchanges
+needrestart
+
+# System snapshots ("undo" for the whole system)
+timeshift
+
+# Apps every desktop shares
+firefox-esr
+libreoffice-writer
+libreoffice-calc
+libreoffice-impress
+vlc
+flatpak
+fonts-noto
+fonts-noto-color-emoji
+fonts-liberation2
+
+# Cherry's own apps (desktop/) need these
+python3-gi
+gir1.2-gtk-4.0
+gir1.2-adw-1
+python3-cryptography
+python3-qrcode
+python3-pil
+python3-zstandard
+libnotify-bin
+# Cherry Move: your own cloud drive or NAS, and finding NAS boxes on the network
+rclone
+avahi-utils
+
+# AppImages from the Cherry Store
+libfuse2t64

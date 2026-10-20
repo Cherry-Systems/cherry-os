@@ -1,0 +1,9 @@
+[Unit]
+Description=Update Cherry's own apps (Cherry Store, Cherry Move, Cherry OS apps)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cherry update -y cherry-store-client cherry-desktop cherry-move
+Nice=10

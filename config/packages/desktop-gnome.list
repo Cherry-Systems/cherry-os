@@ -1,0 +1,21 @@
+# GNOME (pieces of gnome-core, which itself would force the gdm3 login screen)
+gnome-session
+gnome-shell
+gnome-shell-extensions
+gnome-shell-extension-dashtodock
+gnome-shell-extension-appindicator
+gnome-control-center
+gnome-settings-daemon
+gnome-console
+gnome-text-editor
+gnome-system-monitor
+gnome-disk-utility
+gnome-calculator
+gnome-tweaks
+gnome-software
+gnome-software-plugin-flatpak
+nautilus
+loupe
+evince
+gnome-keyring
+xdg-desktop-portal-gnome

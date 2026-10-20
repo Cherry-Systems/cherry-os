@@ -1,0 +1,14 @@
+[Default Applications]
+application/x-ms-dos-executable=cherry-windows-run.desktop
+application/x-msdownload=cherry-windows-run.desktop
+application/x-msi=cherry-windows-run.desktop
+application/x-ms-shortcut=cherry-windows-run.desktop
+application/vnd.microsoft.portable-executable=cherry-windows-run.desktop
+application/x-dosexec=cherry-windows-run.desktop
+application/x-msdos-program=cherry-windows-run.desktop
+
+[Added Associations]
+application/x-ms-dos-executable=cherry-windows-run.desktop;
+application/x-msdownload=cherry-windows-run.desktop;
+application/x-msi=cherry-windows-run.desktop;
+application/vnd.microsoft.portable-executable=cherry-windows-run.desktop;

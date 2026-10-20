@@ -1,0 +1,10 @@
+# Packages the installer adds to the installed system, shipped on the ISO as an offline
+# APT repository so installing works without internet. The groups conflict with each other,
+# so each line is resolved (with dependencies) separately.
+
+grub-pc os-prober
+grub-efi grub-efi-amd64-signed shim-signed efibootmgr os-prober
+cryptsetup-initramfs
+# Debian's Nvidia driver, for GTX 900 and 1000 cards (hooks/35-nvidia.sh, which must list the same packages).
+# Resolved before that hook adds Nvidia's own driver to the live system, so all of it is kept here.
+nvidia-driver nvidia-kernel-dkms nvidia-suspend-common linux-headers-amd64

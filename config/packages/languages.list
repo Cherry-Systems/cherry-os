@@ -1,0 +1,39 @@
+# Programming languages and tools, ready without installing anything.
+
+# Python
+python3
+python3-pip
+python3-venv
+python-is-python3
+python3-tk
+pipx
+thonny
+
+# Java (21 is the default java/javac; 25 is installed alongside)
+default-jdk
+openjdk-25-jdk
+maven
+gradle
+
+# JavaScript
+nodejs
+npm
+
+# C / C++
+build-essential
+gdb
+cmake
+pkg-config
+
+# Rust, Go, Ruby, PHP, Lua, Perl
+rustc
+cargo
+golang-go
+ruby
+php-cli
+lua5.4
+perl
+
+# Handy for all of them
+sqlite3
+jq

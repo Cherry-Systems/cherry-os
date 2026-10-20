@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+"""Cherry Move — send your files from this computer, or get them from your old one.
+  cherry-move                     open the app
+  cherry-move --version           print the version
+  cherry-move --send              open on "What should come with you?"
+  cherry-move --receive           open on "Get your files"
+  cherry-move --stick             a transfer stick was plugged in (from --watch): open on "Get your files",
+                                  or tell the already-open window without leaving what it's doing
+  cherry-move --restore-pending   restore a transfer chosen before installing (runs at first login)
+  cherry-move --watch             background: offer to restore when a transfer USB stick is plugged in
+  cherry-move --adopt-pending USER  root, in the installed system: hand the transfer picked in the live
+                                  session (/var/lib/cherry/pending-transfer.json) to the new user
+
+In a terminal:
+  cherry-move send --to usb --usb /media/me/STICK          files on USB stick(s); asks for more if needed
+  cherry-move send --to gdrive|onedrive|mega [--usb PATH]  your own cloud drive (the stick just gets the code)
+  cherry-move send --to nas --nas-type smb|sftp|webdav --nas-host nas.local --nas-folder Backups --nas-user me
+      [--only documents,pictures,music,videos,desktop,downloads,browsers,personal,apps,other] [--skip FOLDER]...
+  cherry-move get CODE [--usb PATH] [--from gdrive|onedrive|mega|nas ...same NAS options]
+      [--reinstall [--same-name]]   then reinstall your apps, start your services (and take the old name)
+"""
+import sys
+from pathlib import Path
+
+for lib in (Path(__file__).resolve().parent.parent / "lib", Path("/usr/lib/cherry-move"), Path("/usr/lib/cherry"),
+            Path.home() / ".local/share/cherry-move/lib"):
+    if (lib / "cherryos").is_dir():
+        sys.path.insert(0, str(lib))
+        break
+
+
+def cli(argv):
+    import argparse
+    import getpass
+    from cherryos import transfer
+    from cherryos.codes import pretty
+    human = transfer.human
+    ap = argparse.ArgumentParser(prog="cherry-move")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    def where_args(p, flag):
+        p.add_argument(flag, dest="where", choices=["usb", "gdrive", "onedrive", "mega", "nas"])
+        p.add_argument("--usb", type=Path, help="USB stick mount point")
+        p.add_argument("--mega-user", help="MEGA email")
+        p.add_argument("--nas-type", choices=["smb", "sftp", "webdav"], default="smb")
+        p.add_argument("--nas-host", help="NAS name or IP (or the full URL for WebDAV)")
+        p.add_argument("--nas-folder", default="", help="SMB: share/folder; SFTP: folder")
+        p.add_argument("--nas-user", default="")
+        p.add_argument("--nas-port", type=int)
+    s = sub.add_parser("send")
+    where_args(s, "--to")
+    s.add_argument("--only", help="comma-separated: documents,pictures,music,videos,desktop,downloads,browsers,"
+                                  "personal,apps,other")
+    s.add_argument("--skip", action="append", default=[], metavar="FOLDER", help="leave this folder behind (repeatable)")
+    g = sub.add_parser("get")
+    g.add_argument("code")
+    where_args(g, "--from")
+    g.add_argument("--reinstall", action="store_true", help="then reinstall your apps and start your services")
+    g.add_argument("--same-name", action="store_true", help="with --reinstall: give this computer the old one's name")
+    a = ap.parse_args(argv)
+
+    def progress(done, total, name):
+        print(f"\r{human(done)} / {human(total)}  {name[:50]:<50}", end="", flush=True)
+
+    def next_stick(part, problem):
+        print()
+        if problem:
+            print(problem)
+        answer = input(f"Plug in USB stick {part} and type where it's mounted"
+                       f"{f' (Enter for {a.usb})' if a.usb else ''}: ").strip()
+        return Path(answer) if answer else a.usb
+
+    def open_remote():
+        if a.where not in ("gdrive", "onedrive", "mega", "nas"):
+            return None
+        from cherryos import remote
+        if a.where == "nas":
+            settings = ({"type": "webdav", "url": a.nas_host, "user": a.nas_user} if a.nas_type == "webdav" else
+                        {"type": a.nas_type, "host": a.nas_host, "path": a.nas_folder, "user": a.nas_user})
+            if a.nas_port:
+                settings["port"] = a.nas_port
+        else:
+            settings = {"user": a.mega_user} if a.where == "mega" else {}
+        r = remote.Remote(a.where, settings)
+        password = getpass.getpass(f"Password for {r.title}: ") if a.where in ("mega", "nas") else ""
+        print(f"Signing in to {r.title}…" + (" (finish in your web browser)" if a.where in ("gdrive", "onedrive") else ""))
+        try:
+            r.sign_in(password, on_url=lambda url: print(f"If the browser didn't open, go to {url}"))
+        except remote.UntrustedCertificate as e:
+            if input(f"{e}\nConnect anyway? [y/N] ").strip().lower() not in ("y", "yes"):
+                raise
+            r = remote.Remote(a.where, {**settings, "insecure": True})
+            r.sign_in(password)
+        return r
+
+    if a.cmd == "send":
+        where = a.where or "usb"
+        cats = transfer.categories(measure_sizes=False)
+        if a.only:
+            want = set(a.only.split(","))
+            cats = [c for c in cats if c.id in want]
+        if a.skip:
+            skip = frozenset(str(Path(p).expanduser().resolve()) for p in a.skip)
+            for c in cats:
+                c.paths = [(arc, p) for arc, p in c.paths if str(p) not in skip]
+                c.skip = c.skip | skip
+            cats = [c for c in cats if c.paths]
+        for c in cats:
+            transfer.scan_category(c)
+            print(f"  {c.label}: {human(c.size)} ({c.files} files)")
+        print("Looking for duplicates and working out the size…")
+        plan = transfer.make_plan(cats)
+        sizes = transfer.estimate(plan)
+        print(f"{human(plan.raw_size)} packs down to about {human(sizes[transfer.NORMAL])}"
+              + (f" ({plan.duplicates} duplicate files stored once)." if plan.duplicates else "."))
+        level = transfer.NORMAL
+        if where == "usb":
+            if not a.usb:
+                ap.error("--to usb needs --usb PATH")
+            free = transfer.usable_space(a.usb)
+            f = transfer.fit(sizes, free)
+            level = f.level
+            if f.sticks > 1:
+                print(f"\nThis stick is too small: it has {human(free)} free. Use one with at least "
+                      f"{human(int(f.need * 1.05) + transfer.STICK_RESERVE)} free, or {f.sticks} sticks this size.")
+                if input(f"Use {f.sticks} sticks? [y/N] ").strip().lower() not in ("y", "yes"):
+                    return 1
+        r = open_remote()
+        try:
+            storage = "remote" if r else where
+            result = transfer.send(cats, storage, drive=a.usb, progress=progress, plan=plan, level=level, remote=r,
+                                   next_stick=next_stick)
+        finally:
+            if r:
+                r.forget()
+        print(f"\n\nDone: {result.files} files"
+              + (f" on {result.sticks} USB sticks (write 1 to {result.sticks} on them)" if result.sticks > 1 else "")
+              + f". Your transfer code (keep it safe):\n\n    {pretty(result.code)}\n")
+        if a.usb:
+            print(f"The USB stick at {a.usb} is now a Cherry transfer stick.")
+        if result.skipped:
+            print(f"{len(result.skipped)} files couldn't be read and stayed behind:")
+            for p in result.skipped:
+                print(f"  {p}")
+    else:
+        if not a.usb and a.where not in ("gdrive", "onedrive", "mega", "nas"):
+            ap.error("say where the files are: --usb PATH or --from gdrive|onedrive|mega|nas")
+        r = open_remote()
+        try:
+            m = transfer.restore(a.code, a.usb, progress=progress, remote=r, next_stick=next_stick)
+        except transfer.NeedRemote as need:
+            print(f"{need} Run again with --from {need.descriptor.get('kind')}"
+                  + (" and the NAS options." if need.descriptor.get("kind") == "nas" else "."))
+            return 1
+        finally:
+            if r:
+                r.forget()
+        print(f"\n\nRestored {m['restored_files']} files ({m['skipped_files']} already here) from {m.get('hostname')}.")
+        if a.reinstall:
+            problems = transfer.reinstall_apps(m.get("apps") or {},
+                                               hostname=m.get("hostname") if a.same_name else None)
+            print(f"Reinstalled. {'Problems: ' + ', '.join(problems) if problems else 'Everything worked.'} "
+                  f"Details: ~/{transfer.REINSTALL_LOG}")
+    return 0
+
+
+if __name__ == "__main__":
+    args = sys.argv[1:]
+    if args and args[0] in ("send", "get"):
+        sys.exit(cli(args))
+    if args and args[0] in ("-h", "--help"):
+        print(__doc__)
+        sys.exit(0)
+    if args and args[0] in ("-V", "--version"):
+        from cherryos import __version__
+        print(f"Cherry Move {__version__}")
+        sys.exit(0)
+    if args and args[0] == "--adopt-pending":
+        if len(args) != 2:
+            sys.exit("usage: cherry-move --adopt-pending USER")
+        from cherryos.transfer import adopt_pending
+        print(f"Files picked before installing will be restored when {args[1]} logs in." if adopt_pending(args[1])
+              else "No transfer was picked before installing.")
+        sys.exit(0)
+    from cherryos.ui.move import main
+    sys.exit(main(args))

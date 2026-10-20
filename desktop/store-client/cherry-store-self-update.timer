@@ -1,0 +1,10 @@
+[Unit]
+Description=Update Cherry's own apps daily
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=2h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

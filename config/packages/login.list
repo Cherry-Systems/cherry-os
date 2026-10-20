@@ -1,0 +1,7 @@
+# One login screen for every desktop: GDM (GNOME's lock screen needs it; the others bring their own).
+# LightDM, SDDM and light-locker are blocked in overlay/etc/apt/preferences.d/cherry-login so desktops
+# can't pull in a second login manager.
+gdm3
+accountsservice
+dconf-cli
+desktop-base

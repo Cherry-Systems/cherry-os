@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Cherry Move USB watcher
+Comment=Offers to restore your files when a Cherry transfer USB stick is plugged in
+Exec=cherry-move --watch
+NoDisplay=true
+X-GNOME-Autostart-Delay=8

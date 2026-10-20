@@ -1,0 +1,5 @@
+# Cherry OS uses one login screen (GDM) for every desktop. light-locker only works with LightDM;
+# Xfce uses xfce4-screensaver instead.
+Package: lightdm sddm lxdm slim light-locker
+Pin: release *
+Pin-Priority: -1

@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""Cherry Store — browse and install apps published by anyone.  cherry-store [--updates]"""
+import sys
+from pathlib import Path
+
+for lib in (Path(__file__).resolve().parent.parent / "lib", Path("/usr/lib/cherry")):
+    if (lib / "cherryos").is_dir():
+        sys.path.insert(0, str(lib))
+        break
+
+from cherryos.ui.store import main  # noqa: E402
+
+sys.exit(main(sys.argv[1:]))

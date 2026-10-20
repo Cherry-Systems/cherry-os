@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Cherry Welcome
+Exec=cherry-center --welcome
+Icon=cherry-logo
+NoDisplay=true
+X-GNOME-Autostart-Delay=3

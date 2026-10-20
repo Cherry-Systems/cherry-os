@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Cherry Move
+GenericName=Move to Cherry OS
+Comment=Pack up your files to bring them to Cherry OS
+Exec=cherry-move-app
+Icon=cherry-move-app
+Terminal=false
+Categories=Utility;
+Keywords=transfer;migrate;move;backup;files;
+StartupNotify=true
+StartupWMClass=cherry-move-app

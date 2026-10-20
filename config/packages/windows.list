@@ -1,0 +1,8 @@
+# Windows app support (Wine). 32-bit pieces need the i386 architecture, which build.sh enables.
+wine
+wine64
+wine32:i386
+libwine:i386
+winetricks
+fonts-wine
+cabextract

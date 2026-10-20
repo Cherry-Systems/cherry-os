@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Cherry Store
+GenericName=App store
+Comment=Apps published by anyone, signed and virus-scanned
+Exec=cherry-store
+Icon=cherry-store
+StartupWMClass=org.cherryos.Store
+Categories=System;PackageManager;
+Keywords=apps;install;store;software;packages;
+StartupNotify=true

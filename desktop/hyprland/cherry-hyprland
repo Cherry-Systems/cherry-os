@@ -1,0 +1,64 @@
+#!/bin/sh
+# Cherry OS's helpers for Hyprland, run from /etc/xdg/hypr/hyprland.lua and the bar:
+#   start                  at login: wallpaper, bar, notifications, screen locking, password prompts, autostart apps
+#   apps | power | shortcuts | browser | screenshot area|screen
+# A tool's own config in ~/.config wins over Cherry's.
+D=/usr/share/cherry/hyprland
+own() { for f in "$@"; do [ -e "$HOME/.config/$f" ] && return 0; done; return 1; }
+menu() { if own fuzzel/fuzzel.ini; then fuzzel "$@"; else fuzzel --config "$D/fuzzel.ini" "$@"; fi; }
+
+case "$1" in
+start)
+  # Portals (file pickers, screen sharing) and apps started by D-Bus need to know about this session.
+  dbus-update-activation-environment --systemd WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE \
+    HYPRLAND_INSTANCE_SIGNATURE QT_QPA_PLATFORMTHEME
+  swaybg -m fill -i /usr/share/backgrounds/cherry/cherry-dusk.png &
+  if own waybar/config waybar/config.jsonc; then waybar & else waybar -c "$D/waybar.jsonc" -s "$D/waybar.css" & fi
+  if own mako/config; then mako & else mako --config "$D/mako.conf" & fi
+  hypridle &
+  /usr/libexec/hyprpolkitagent &
+  dex --autostart --environment Hyprland &
+  mark="$HOME/.config/cherry/hyprland-welcome-done"
+  if [ ! -e "$mark" ]; then
+    sleep 3
+    notify-send -a "Cherry OS" -i cherry-logo -t 20000 "Welcome to Hyprland" \
+      "Super+Space: your apps · Super+Enter: terminal · Super+Q: close a window · Super+/: every shortcut"
+    mkdir -p "${mark%/*}" && touch "$mark"
+  fi
+  wait
+  ;;
+apps)
+  pkill -x fuzzel || menu
+  ;;
+power)
+  choice=$(printf 'Lock\nLog out\nRestart\nShut down\n' | menu --dmenu --lines 4 --prompt "Power: ")
+  case "$choice" in
+    Lock) loginctl lock-session ;;
+    "Log out") hyprctl dispatch 'hl.dsp.exit()' ;;
+    Restart) systemctl reboot ;;
+    "Shut down") systemctl poweroff ;;
+  esac
+  ;;
+shortcuts)
+  menu --dmenu --lines 20 --width 60 --prompt "Shortcuts: " < "$D/shortcuts.txt" >/dev/null
+  ;;
+browser)
+  app=$(xdg-settings get default-web-browser 2>/dev/null)
+  [ -n "$app" ] && gtk-launch "$app" || firefox-esr
+  ;;
+screenshot)
+  dir="$(xdg-user-dir PICTURES)/Screenshots"
+  mkdir -p "$dir"
+  file="$dir/Screenshot $(date '+%Y-%m-%d %H-%M-%S').png"
+  if [ "$2" = area ]; then
+    area=$(slurp) || exit 0
+    grim -g "$area" "$file"
+  else
+    grim "$file"
+  fi && wl-copy < "$file" > /dev/null 2>&1 && notify-send -a Screenshot -i "$file" "Screenshot saved" "In Pictures/Screenshots, and copied"
+  ;;
+*)
+  sed -n '2,5p' "$0"
+  exit 1
+  ;;
+esac

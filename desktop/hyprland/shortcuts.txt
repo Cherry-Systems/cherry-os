@@ -1,0 +1,20 @@
+Super+Space         Apps (type to search)
+Super+Enter         Terminal
+Super+E             Files
+Super+B             Web browser
+Super+I             Cherry Center (settings, desktops, updates)
+Super+Q             Close the window
+Super+F             Full screen
+Super+V             Float the window / tile it again
+Super+J             Turn the split round (side by side or above and below)
+Super+arrows        Move between windows
+Super+Shift+arrows  Move the window
+Super+1 … 0         Go to workspace 1 to 10
+Super+Shift+1 … 0   Send the window to a workspace
+Super+mouse wheel   Next or previous workspace
+Super+drag          Move a window with the left button, resize with the right
+3 fingers sideways  Change workspace (touchpad)
+Print               Screenshot of an area (Shift+Print: whole screen)
+Super+L             Lock the screen
+Super+Escape        Lock, log out, restart or shut down
+Super+/             These shortcuts

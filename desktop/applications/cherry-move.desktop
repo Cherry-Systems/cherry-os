@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Cherry Move
+GenericName=Move your files
+Comment=Bring your files from your old computer, or send them to a new one
+Exec=cherry-move
+Icon=cherry-move
+StartupWMClass=org.cherryos.Move
+Categories=Utility;System;
+Keywords=transfer;migrate;backup;files;usb;restore;
+StartupNotify=true

@@ -1,0 +1,25 @@
+# Copied to .github/workflows/ of the test repo by run-mac-test.sh.
+name: Cherry Move on macOS
+on: [push, workflow_dispatch]
+jobs:
+  mac:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: macos-26, name: apple-silicon-macos-26 }
+          - { runner: macos-15, name: apple-silicon-macos-15 }
+          - { runner: macos-15-intel, name: intel-macos-15 }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - run: uname -m && sw_vers
+      - run: sudo safaridriver --enable
+      - run: python3 -m venv /tmp/venv && /tmp/venv/bin/pip install -q selenium pyobjc-framework-Quartz
+      - run: /tmp/venv/bin/python mac_test.py dist/CherryMove.dmg out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.name }}
+          path: out

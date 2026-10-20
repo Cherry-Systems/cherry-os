@@ -1,0 +1,32 @@
+set timeout=8
+set default=0
+
+insmod all_video
+insmod png
+set gfxmode=1024x768,auto
+if loadfont unicode; then
+  insmod gfxterm
+  terminal_output gfxterm
+fi
+background_image -m stretch /boot/grub/background.png
+
+set color_normal=white/black
+set menu_color_normal=light-gray/black
+set menu_color_highlight=white/magenta
+
+@DESKTOP_ENTRIES@
+menuentry "Try @OS_NAME@ @OS_VERSION@ (safe graphics)" {
+  linux /live/vmlinuz boot=live components nomodeset cherry.desktop=@DEFAULT_DESKTOP@ @LIVE_ARGS@
+  initrd /live/initrd.img
+}
+
+menuentry "Try @OS_NAME@ @OS_VERSION@ (load into RAM)" {
+  linux /live/vmlinuz boot=live components quiet splash toram cherry.desktop=@DEFAULT_DESKTOP@ @LIVE_ARGS@
+  initrd /live/initrd.img
+}
+
+if [ "$grub_platform" = "efi" ]; then
+  menuentry "UEFI Firmware Settings" {
+    fwsetup
+  }
+fi

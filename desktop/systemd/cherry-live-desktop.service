@@ -1,0 +1,13 @@
+[Unit]
+Description=Start the desktop picked in the Cherry OS boot menu (live session)
+ConditionKernelCommandLine=boot=live
+# accounts-daemon reads the user's session file once at start, so write it first.
+Before=accounts-daemon.service gdm.service display-manager.service
+After=live-config.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cherry-desktop live-boot
+
+[Install]
+WantedBy=graphical.target

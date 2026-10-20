@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Cherry Center
+GenericName=Welcome and settings
+Comment=Choose your desktop, bring your files, Windows apps and updates
+Exec=cherry-center
+Icon=cherry-logo
+StartupWMClass=org.cherryos.Center
+Categories=Settings;System;
+Keywords=welcome;desktop;switch;kde;gnome;cinnamon;xfce;budgie;transfer;windows;updates;
+StartupNotify=true

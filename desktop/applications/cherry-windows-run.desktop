@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Windows App Runner
+Comment=Run and install Windows programs
+Exec=cherry-windows-run %f
+Icon=wine
+Categories=Utility;
+MimeType=application/x-ms-dos-executable;application/x-msdownload;application/x-msi;application/x-ms-shortcut;application/x-wine-extension-msp;application/vnd.microsoft.portable-executable;application/x-dosexec;application/x-msdos-program;
+NoDisplay=true
+StartupNotify=true

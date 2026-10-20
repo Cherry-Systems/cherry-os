@@ -1,0 +1,50 @@
+* {
+    font-family: "Noto Sans", FontAwesome, sans-serif;
+    font-size: 14px;
+    border: none;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(26, 10, 18, 0.82);
+    color: #fbe9ef;
+}
+
+#custom-apps, #workspaces, #clock, #tray, #pulseaudio, #network, #battery, #custom-power {
+    margin: 4px 0;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(74, 34, 56, 0.75);
+}
+
+#custom-apps {
+    margin-left: 6px;
+    background: #c81040;
+    font-weight: bold;
+}
+
+#workspaces { padding: 0 4px; }
+#workspaces button {
+    color: #d8b3c2;
+    padding: 0 8px;
+    border-radius: 999px;
+}
+#workspaces button.active {
+    background: #c81040;
+    color: #ffffff;
+}
+#workspaces button:hover { background: rgba(200, 16, 64, 0.5); }
+
+#clock { font-weight: bold; }
+/* Many tray icons (the network one included) are dark grey, made for light panels. */
+#tray { background: rgba(251, 233, 239, 0.85); }
+#tray.empty { background: transparent; padding: 0; }
+#battery.warning { color: #ffcf6e; }
+#battery.critical { color: #ff6e6e; }
+#custom-power { margin-right: 6px; }
+#custom-power:hover, #custom-apps:hover { background: #e8204f; }
+
+tooltip {
+    background: #2a1220;
+    border-radius: 10px;
+}

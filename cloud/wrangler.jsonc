@@ -1,0 +1,41 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cherry-cloud",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/download/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cherry-cloud",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // Where uploads wait until the store collects them: "d1" (free, ~500 MB, works today),
+  // "r2" (10 GB free; enable R2 in the dashboard and uncomment the bucket below) or
+  // "s3" (any S3-compatible service such as Backblaze B2: set S3_ENDPOINT, S3_BUCKET and the
+  // S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY secrets).
+  // "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "cherry-cloud" }],
+  "vars": {
+    "STORAGE": "d1",
+    "STORAGE_LIMIT_MB": "450",
+    "MAX_PACKAGE_MB": "200",
+    // The store's packages and index live in this GitHub repository. Secrets (wrangler secret put):
+    // GITHUB_TOKEN (fine-grained, this repository only: Contents and Issues read/write) and
+    // STORE_TOKEN (shared with the repository's Actions secret of the same name).
+    "STORE_REPO": "Cherry-Systems/cherry-store",
+    "S3_ENDPOINT": "",
+    "S3_BUCKET": ""
+  },
+  "triggers": {
+    "crons": ["17 3 * * *"]
+  },
+  "observability": {
+    "enabled": true
+  }
+}

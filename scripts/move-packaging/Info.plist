@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Cherry Move</string>
+  <key>CFBundleDisplayName</key><string>Cherry Move</string>
+  <key>CFBundleIdentifier</key><string>org.cherryos.move</string>
+  <key>CFBundleExecutable</key><string>CherryMove</string>
+  <key>CFBundleIconFile</key><string>CherryMove</string>
+  <key>CFBundleShortVersionString</key><string>@VERSION@</string>
+  <key>CFBundleVersion</key><string>@VERSION@</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>LSMinimumSystemVersion</key><string>11.0</string>
+  <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsLocalNetworking</key><true/>
+  </dict>
+  <key>NSDocumentsFolderUsageDescription</key><string>Cherry Move packs up your documents to bring them to Cherry OS.</string>
+  <key>NSDesktopFolderUsageDescription</key><string>Cherry Move packs up the files on your desktop to bring them to Cherry OS.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Cherry Move packs up your downloads to bring them to Cherry OS.</string>
+  <key>NSPhotoLibraryUsageDescription</key><string>Cherry Move copies the original photos and videos from your Photos library to bring them to Cherry OS.</string>
+  <key>NSRemovableVolumesUsageDescription</key><string>Cherry Move keeps your packed files on the USB stick you choose.</string>
+  <key>NSNetworkVolumesUsageDescription</key><string>Cherry Move keeps your packed files on the NAS you choose.</string>
+  <key>NSLocalNetworkUsageDescription</key><string>Cherry Move uses your home network to reach your NAS, and to find a printer if you print your code.</string>
+</dict>
+</plist>

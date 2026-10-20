@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff7f9"/><stop offset="1" stop-color="#ffd3e0"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3c0d0"/><stop offset="1" stop-color="#e59ab3"/>
+    </linearGradient>
+    <radialGradient id="cherry" cx="0.35" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#ff5a7e"/><stop offset="0.55" stop-color="#c81040"/>
+      <stop offset="1" stop-color="#7a0828"/>
+    </radialGradient>
+  </defs>
+  <path d="M46 40 V30 a18 18 0 0 1 36 0 V40" fill="none" stroke="#7a0828" stroke-width="7" stroke-linecap="round"/>
+  <path d="M96 36 L108 42 L112 112 L100 116 Z" fill="url(#side)"/>
+  <path d="M24 36 H96 L100 116 H20 Z" fill="url(#bag)" stroke="#e59ab3" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="46" cy="44" r="4" fill="#7a0828"/>
+  <circle cx="82" cy="44" r="4" fill="#7a0828"/>
+  <path d="M60 60 C62 72, 60 80, 56 88" fill="none" stroke="#5c3a1e" stroke-width="4" stroke-linecap="round"/>
+  <path d="M60 60 C68 52, 80 52, 84 58 C76 64, 66 64, 60 60 Z" fill="#40a048"/>
+  <circle cx="56" cy="96" r="15" fill="url(#cherry)"/>
+  <ellipse cx="50" cy="90" rx="4.5" ry="2.8" fill="#ffffff" opacity="0.6" transform="rotate(-35 50 90)"/>
+</svg>

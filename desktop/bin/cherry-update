@@ -1,0 +1,11 @@
+#!/bin/sh
+# Installs every available update (Debian, Flatpak and Cherry Store) in a terminal window you can watch.
+script='
+echo "Updating Cherry OS…"; echo
+sudo apt-get update && sudo apt-get -y full-upgrade && sudo apt-get -y autoremove
+command -v flatpak >/dev/null && { echo; echo "Updating Flatpak apps…"; flatpak update -y; }
+echo; echo "Updating Cherry Store apps…"; cherry update -y
+echo; printf "All done. Press Enter to close. "; read _
+'
+if [ -t 0 ]; then exec sh -c "$script"; fi
+exec x-terminal-emulator -e sh -c "$script"

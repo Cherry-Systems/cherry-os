@@ -1,0 +1,245 @@
+#!/usr/bin/env python3
+"""cherry — install apps from the Cherry Store, or publish your own.
+
+  cherry search [WORDS]          find apps
+  cherry info NAME               details, publisher, warnings
+  cherry install NAME...         install apps (asks for your password); also takes .deb files
+  cherry remove NAME...          uninstall
+  cherry list                    what you've installed from the Cherry Store
+  cherry update [NAME...]        update installed apps (all of them, or just those named)
+  cherry report NAME             report malware or illegal content
+
+Publishing (no review, no approval queue). Apps are Debian packages kept on GitHub
+(github.com/Cherry-Systems/cherry-store), virus-scanned, and signed with a key on this computer:
+  cherry init                    create cherry.toml in the current folder
+  cherry build [DIR]             make dist/NAME_VERSION_ARCH.deb
+  cherry publish --github [DIR|FILE.deb]   publish with your GitHub account (gh auth login first)
+  cherry publish --cherry [DIR|FILE.deb]   publish with a Cherry account
+  cherry yank NAME VERSION [--github|--cherry]   withdraw a version you published
+  cherry signup USERNAME         create a Cherry account
+  cherry login KEYFILE           use your key (from 'cherry key export') on this computer
+  cherry whoami
+  cherry key export              print your key so you can back it up or use it on another computer
+"""
+import argparse
+import os
+import sys
+from pathlib import Path
+
+for lib in (Path(__file__).resolve().parent.parent / "lib", Path("/usr/lib/cherry")):
+    if (lib / "cherryos").is_dir():
+        sys.path.insert(0, str(lib))
+        break
+
+from cherryos import __version__, pkg  # noqa: E402
+from cherryos.cloud import CloudError  # noqa: E402
+
+BOLD, DIM, RED, YELLOW, GREEN, END = (("\033[1m", "\033[2m", "\033[31m", "\033[33m", "\033[32m", "\033[0m")
+                                      if sys.stdout.isatty() else ("",) * 6)
+
+
+def ask(question: str, assume_yes: bool) -> bool:
+    if assume_yes:
+        return True
+    if not sys.stdin.isatty():
+        return False
+    return input(f"{question} [y/N] ").strip().lower() in ("y", "yes")
+
+
+def cmd_search(a):
+    rows = pkg.search(a.words)
+    if not rows:
+        print("No apps found.")
+    for p in rows:
+        flags = []
+        if p.get("kind") == "windows":
+            flags.append("Windows app")
+        if p["versions"][p["latest"]].get("scan", {}).get("status") == "flagged":
+            flags.append(f"{RED}virus warning{END}")
+        print(f"{BOLD}{p['name']}{END} {p['latest']}  {DIM}by {p['publisher']}{END}"
+              f"{'  [' + ', '.join(flags) + ']' if flags else ''}\n    {p.get('summary', '')}")
+
+
+def cmd_info(a):
+    p = pkg.listing(a.name)
+    v = p["versions"][p["latest"]]
+    print(f"{BOLD}{p['name']}{END} {p['latest']} — {p.get('summary', '')}")
+    print(f"Publisher: {p['publisher']}   Kind: {p.get('kind', 'native')}   For: {v['architecture']}")
+    if p.get("homepage"):
+        print(f"Homepage: {p['homepage']}")
+    if p.get("license"):
+        print(f"License: {p['license']}")
+    print(f"Size: {pkg.human_size(v['size'])}   Virus scan: {v.get('scan', {}).get('status', 'pending')}")
+    for w in pkg.warnings_for(p):
+        print(f"{YELLOW}! {w}{END}")
+    if p.get("description"):
+        print("\n" + p["description"].strip())
+
+
+def cmd_install(a):
+    pkg.ensure_root(sys.argv)
+
+    def confirm(name, warns):
+        print(f"{YELLOW}{name}:{END}")
+        for w in warns:
+            print(f"  {YELLOW}! {w}{END}")
+        return ask("Install anyway?", a.yes)
+    for path in [n for n in a.names if n.endswith(".deb")]:
+        if not Path(path).exists():
+            raise pkg.PkgError(f"{path} doesn't exist")
+        if not ask(f"{path} doesn't come from the Cherry Store, so nobody has checked it. Install it?", a.yes):
+            continue
+        rec = pkg.install_file(Path(path))
+        print(f"{GREEN}Installed {rec['name']} {rec['version']} from a local file{END}")
+    names = [n for n in a.names if not n.endswith(".deb")]
+    if names:
+        pkg.install(names, confirm=confirm, force=a.force)
+
+
+def cmd_remove(a):
+    pkg.ensure_root(sys.argv)
+    for n in a.names:
+        pkg.uninstall(n)
+
+
+def cmd_list(a):
+    rows = pkg.installed()
+    if not rows:
+        print("Nothing installed from the Cherry Store yet. Try 'cherry search'.")
+    for name, r in rows.items():
+        print(f"{BOLD}{name}{END} {r['version']}  {DIM}by {r.get('publisher', '?')}{END}")
+
+
+def cmd_update(a):
+    ups = pkg.updates(only=a.names)
+    if not ups:
+        print("Everything is up to date.")
+        return
+    for name, old, new in ups:
+        print(f"{name}: {old} → {new}")
+    if a.check:
+        return
+    if ask("Update these apps?", a.yes):
+        pkg.ensure_root(sys.argv + (["-y"] if "-y" not in sys.argv else []))
+        pkg.install([n for n, _, _ in ups], confirm=lambda n, w: ask(f"{n}: {' '.join(w)} Continue?", a.yes))
+
+
+def cmd_report(a):
+    reasons = ["malware", "illegal", "impersonation", "broken", "other"]
+    reason = a.reason or input(f"Reason ({', '.join(reasons)}): ").strip()
+    details = a.details if a.details is not None else input("Details: ")
+    try:
+        print(pkg.report(a.name, reason, details))
+    except CloudError:
+        print(f"Couldn't send it. You can report it on GitHub instead:\n  {pkg.report_url(a.name)}")
+
+
+def route(a) -> str:
+    if a.github or a.cherry:
+        return "github" if a.github else "cherry"
+    ident = pkg.load_identity() if pkg.identity_file().exists() else None
+    return "cherry" if ident and ident.username else "github"
+
+
+def cmd_publish(a):
+    how = route(a)
+    res = pkg.publish_github(Path(a.path), wait=0 if a.no_wait else 900) if how == "github" else \
+        pkg.publish_cherry(Path(a.path), wait=0 if a.no_wait else 900)
+    if res["ok"] is False:
+        raise pkg.PkgError(res["message"] or "the store refused it")
+    if res["message"]:
+        print(res["message"].replace("**", "").replace("`", "'"))
+    if res["ok"]:
+        print(f"{GREEN}Published {res['name']} {res['version']}{END} — install it with 'cherry install {res['name']}'")
+
+
+def cmd_yank(a):
+    print(pkg.yank(a.name, a.version, route(a)))
+
+
+def cmd_build(a):
+    print(f"Built {pkg.build(Path(a.dir))}")
+
+
+def cmd_init(a):
+    print(f"Created {pkg.init(Path(a.dir))}. Edit it, then run 'cherry build' and 'cherry publish'.")
+
+
+def cmd_signup(a):
+    ident = pkg.signup(a.username, a.email or "")
+    print(f"{GREEN}Welcome, {ident.username}!{END} Your signing key is in {pkg.identity_file()}.")
+    print("Back it up with 'cherry key export' — it's the only way into your account and your packages.")
+
+
+def cmd_login(a):
+    src = Path(a.keyfile)
+    if src.exists() and src.read_text().strip().startswith("{"):
+        tmp = src
+    else:
+        tmp = Path(os.environ.get("TMPDIR", "/tmp")) / f"cherry-key-{os.getpid()}.json"
+        tmp.write_text(src.read_text() if src.exists() else a.keyfile)
+    ident = pkg.login(tmp)
+    print(f"Signed in as {ident.username}" if ident.username else "Saved your key (it has no Cherry account).")
+
+
+def cmd_whoami(a):
+    ident = pkg.load_identity()
+    print(f"{ident.username or '(no Cherry account)'}  key {ident.key_id}")
+
+
+def cmd_key(a):
+    if a.action == "export":
+        pkg.ensure_identity()
+        print(pkg.identity_file().read_text())
+        print(f"{YELLOW}Anyone with this text can publish as you. Keep it somewhere safe.{END}", file=sys.stderr)
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="cherry", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("-V", "--version", action="version", version=f"cherry {__version__}")
+    sub = ap.add_subparsers(dest="cmd")
+    s = sub.add_parser("search"); s.add_argument("words", nargs="*"); s.set_defaults(fn=cmd_search)
+    s = sub.add_parser("info"); s.add_argument("name"); s.set_defaults(fn=cmd_info)
+    s = sub.add_parser("install"); s.add_argument("names", nargs="+"); s.add_argument("-y", "--yes", action="store_true")
+    s.add_argument("--force", action="store_true"); s.set_defaults(fn=cmd_install)
+    s = sub.add_parser("remove", aliases=["uninstall"]); s.add_argument("names", nargs="+"); s.set_defaults(fn=cmd_remove)
+    s = sub.add_parser("list"); s.set_defaults(fn=cmd_list)
+    s = sub.add_parser("update", aliases=["upgrade"]); s.add_argument("names", nargs="*")
+    s.add_argument("-y", "--yes", action="store_true")
+    s.add_argument("--check", action="store_true"); s.set_defaults(fn=cmd_update)
+    s = sub.add_parser("report"); s.add_argument("name")
+    s.add_argument("--reason"); s.add_argument("--details"); s.set_defaults(fn=cmd_report)
+    s = sub.add_parser("init"); s.add_argument("dir", nargs="?", default="."); s.set_defaults(fn=cmd_init)
+    s = sub.add_parser("build"); s.add_argument("dir", nargs="?", default="."); s.set_defaults(fn=cmd_build)
+    for name, fn in (("publish", cmd_publish), ("yank", cmd_yank)):
+        s = sub.add_parser(name)
+        if name == "publish":
+            s.add_argument("path", nargs="?", default=".")
+            s.add_argument("--no-wait", action="store_true", help="don't wait for the store's checks")
+        else:
+            s.add_argument("name"); s.add_argument("version")
+        g = s.add_mutually_exclusive_group()
+        g.add_argument("--github", action="store_true", help="use your GitHub account (gh)")
+        g.add_argument("--cherry", action="store_true", help="use your Cherry account")
+        s.set_defaults(fn=fn)
+    s = sub.add_parser("signup"); s.add_argument("username"); s.add_argument("--email"); s.set_defaults(fn=cmd_signup)
+    s = sub.add_parser("login"); s.add_argument("keyfile"); s.set_defaults(fn=cmd_login)
+    s = sub.add_parser("whoami"); s.set_defaults(fn=cmd_whoami)
+    s = sub.add_parser("key"); s.add_argument("action", choices=["export"]); s.set_defaults(fn=cmd_key)
+    a = ap.parse_args()
+    sys.stdout.reconfigure(line_buffering=True)  # keeps our lines in order with apt's output
+    if not getattr(a, "fn", None):
+        ap.print_help()
+        return 0
+    try:
+        a.fn(a)
+    except (pkg.PkgError, CloudError) as err:
+        print(f"{RED}cherry: {err}{END}", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        return 130
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

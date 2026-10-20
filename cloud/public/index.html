@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cherry Store</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="cherry-store.svg">
+  <meta name="theme-color" content="#c81040">
+</head>
+<body>
+<main>
+  <header><img src="cherry-store.svg" alt=""><h1>Cherry Store</h1>
+    <a class="home" href="https://cherry-systems.github.io/">by Cherry Systems</a></header>
+  <p>Apps for Cherry OS and other Debian-based Linux, published by anyone. Install with the Cherry Store app or
+    <code>cherry install NAME</code>. Every package is an ordinary Debian package, signed by its publisher and
+    virus-scanned; warnings are shown, nothing is judged. They're all kept in
+    <a href="https://github.com/Cherry-Systems/cherry-store">Cherry-Systems/cherry-store</a>.
+    The Cherry Store app and Cherry Cloud are part of the
+    <a href="https://github.com/Cherry-Systems/cherry-os">Cherry OS source</a>.</p>
+
+  <div class="card get">
+    <h2>Get the Cherry Store app</h2>
+    <p class="big">For Ubuntu, Linux Mint, Debian, Pop!_OS, Zorin OS, elementary OS and other Debian-based Linux.</p>
+    <a class="button" id="client-download" href="https://cherry-cloud.isaiahcannings.workers.dev/download/cherry-store.deb">Download for Linux (.deb)</a>
+    <span class="meta" id="client-version"></span>
+    <p>Open the downloaded file to install it with your software app, then find <b>Cherry Store</b> among your
+      apps. It keeps itself up to date. Or install it from a terminal:</p>
+    <pre><code id="client-cmd">wget -O /tmp/cherry-store.deb https://cherry-cloud.isaiahcannings.workers.dev/download/cherry-store.deb
+sudo apt install /tmp/cherry-store.deb</code></pre>
+    <p class="meta">Needs Ubuntu 22.04, Linux Mint 21, Debian 12 or newer (64-bit PC or ARM). On Ubuntu 22.04, use
+      the terminal commands. Cherry OS already includes it.</p>
+  </div>
+
+  <input type="search" id="q" placeholder="Search apps…">
+  <div id="results"></div>
+
+  <h2>Publish your app</h2>
+  <div class="card">
+    <p>On Cherry OS, or with the Cherry Store app installed: <code>cherry init</code> and <code>cherry build</code> in your project, then
+      <code>cherry publish --github</code> (with your GitHub account) or <code>cherry signup YOURNAME</code> and
+      <code>cherry publish --cherry</code>. No review queue, no approval.</p>
+  </div>
+
+</main>
+<script type="module">
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  for (const c of children) e.append(c);
+  return e;
+}
+const results = document.getElementById("results");
+const INDEX = "https://raw.githubusercontent.com/Cherry-Systems/cherry-store/main/index.json";
+const CLIENT = "cherry-store-client";
+function showClient(url) {
+  document.getElementById("client-download").href = url;
+  document.getElementById("client-cmd").textContent =
+    `wget -O /tmp/cherry-store.deb ${url}\nsudo apt install /tmp/cherry-store.deb`;
+}
+function publisher(p) {
+  const [how, who] = p.publisher.split(":");
+  return who ? `${who} (${how === "github" ? "GitHub" : "Cherry account"})` : p.publisher;
+}
+let index = null;
+async function load(q = "") {
+  if (!index) {
+    index = await (await fetch(INDEX)).json();
+    const client = index.packages?.[CLIENT];
+    if (client?.latest) {
+      document.getElementById("client-version").textContent = `version ${client.latest}`;
+      const url = client.versions?.[client.latest]?.url;
+      if (url?.startsWith("https://github.com/")) showClient(url);
+    }
+  }
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const packages = Object.values(index.packages || {}).filter((p) => p.name !== CLIENT && !p.taken_down && p.latest &&
+    words.every((w) => `${p.name} ${p.summary || ""} ${p.description || ""}`.toLowerCase().includes(w)));
+  results.replaceChildren();
+  if (!packages.length) results.append(el("p", {}, q ? "No apps match that." : "No apps yet — be the first to publish!"));
+  for (const p of packages.sort((a, b) => a.name.localeCompare(b.name))) {
+    const v = p.versions[p.latest];
+    const badges = [];
+    if (p.kind === "windows") badges.push(el("span", { class: "badge" }, "Windows app"));
+    if (v.scan?.status === "flagged") badges.push(el("span", { class: "badge flagged" }, "⚠ virus scanner warning"));
+    if (v.warnings?.length) badges.push(el("span", { class: "badge flagged" }, `${v.warnings.length} warning(s)`));
+    results.append(el("div", { class: "card pkg" },
+      el("div", { class: "icon" }, p.name[0].toUpperCase()),
+      el("div", {},
+        el("h3", {}, p.name, ...badges),
+        el("p", {}, p.summary || ""),
+        el("div", { class: "meta" }, `v${p.latest} · by ${publisher(p)} · `,
+          el("code", {}, `cherry install ${p.name}`)))));
+  }
+}
+let t;
+document.getElementById("q").addEventListener("input", (e) => { clearTimeout(t); t = setTimeout(() => load(e.target.value), 250); });
+load();
+</script>
+</body>
+</html>

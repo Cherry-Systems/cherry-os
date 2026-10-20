@@ -1,0 +1,51 @@
+// Cherry OS's bar for Hyprland. To change it, copy this file and waybar.css to ~/.config/waybar/
+// (as config.jsonc and style.css).
+{
+    "layer": "top",
+    "position": "top",
+    "height": 34,
+    "spacing": 6,
+    "modules-left": ["custom/apps", "hyprland/workspaces"],
+    "modules-center": ["clock"],
+    "modules-right": ["tray", "pulseaudio", "network", "battery", "custom/power"],
+
+    "custom/apps": {
+        "format": "\uf00a  Apps",
+        "tooltip-format": "Your apps (Super+Space)",
+        "on-click": "/usr/lib/cherry/hyprland/cherry-hyprland apps"
+    },
+    "hyprland/workspaces": {
+        "on-click": "activate",
+        "sort-by-number": true
+    },
+    "clock": {
+        "format": "{:%a %d %b  %H:%M}",
+        "tooltip-format": "<tt>{calendar}</tt>"
+    },
+    "tray": { "spacing": 8 },
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "\uf026 Muted",
+        "format-icons": { "default": ["\uf026", "\uf027", "\uf028"] },
+        "on-click": "pavucontrol",
+        "tooltip-format": "Sound: {desc}"
+    },
+    "network": {
+        "format-wifi": "\uf1eb {essid}",
+        "format-ethernet": "\uf0e8 Wired",
+        "format-disconnected": "\uf127 Offline",
+        "tooltip-format": "{ifname} {ipaddr}",
+        "on-click": "nm-connection-editor"
+    },
+    "battery": {
+        "format": "{icon} {capacity}%",
+        "format-charging": "\uf0e7 {capacity}%",
+        "format-icons": ["\uf244", "\uf243", "\uf242", "\uf241", "\uf240"],
+        "states": { "warning": 25, "critical": 10 }
+    },
+    "custom/power": {
+        "format": "\uf011",
+        "tooltip-format": "Lock, log out, restart or shut down (Super+Escape)",
+        "on-click": "/usr/lib/cherry/hyprland/cherry-hyprland power"
+    }
+}

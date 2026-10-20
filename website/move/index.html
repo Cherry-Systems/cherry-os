@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cherry Move · Cherry Systems</title>
+  <meta name="description" content="Cherry Move: bring your files from your old computer to Cherry OS.">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="icon" href="/images/cherry-move.svg">
+  <meta name="theme-color" content="#c81040">
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><img src="/logo.svg" alt="">Cherry Systems</a>
+  <a href="/os/">Cherry OS</a>
+  <a href="/store/">Cherry Store</a>
+  <a href="/move/" aria-current="page">Cherry Move</a>
+  <a href="/products/gamebox/">Gamebox</a>
+  <a href="https://github.com/Cherry-Systems">GitHub</a>
+</nav>
+<main>
+  <section class="hero">
+    <img src="/images/cherry-move.svg" alt="">
+    <h1>Cherry Move</h1>
+    <p>Bring your files from your old Windows, Mac or Linux computer to Cherry OS, encrypted the whole way.</p>
+    <a class="button" href="https://github.com/Cherry-Systems/cherry-os/releases/latest/download/CherryMove-Setup.exe">Windows</a>
+    <a class="button" href="https://github.com/Cherry-Systems/cherry-os/releases/latest/download/CherryMove.dmg">macOS</a>
+    <a class="button" href="https://github.com/Cherry-Systems/cherry-os/releases/latest/download/cherry-move-app_1.0.0-1_amd64.deb">Linux (.deb)</a>
+    <p class="small">Also on every Cherry OS USB stick.
+      <a href="https://github.com/Cherry-Systems/cherry-os/releases/latest">More downloads</a>: .rpm, ARM and
+      standalone Linux.</p>
+  </section>
+
+  <h2>How it works</h2>
+  <ul class="features">
+    <li><b>On your old computer,</b> pick what to bring. Cherry Move compresses your files, stores identical
+      files only once, and encrypts everything before it leaves.</li>
+    <li><b>Keep them where suits you:</b> on one or more USB sticks with no internet needed, in your own
+      Google Drive, OneDrive or MEGA, or on a NAS or another computer at home.</li>
+    <li><b>On Cherry OS,</b> plug in the USB stick and your files are found by themselves, even in the
+      installer. Or type the 34-character code you saved: print it, keep it, or scan its QR code with your
+      phone.</li>
+    <li><b>Private by design.</b> Nothing ever leaves unencrypted, and sign-ins to your cloud drive or NAS
+      are forgotten when Cherry Move closes. Files kept in your cloud drive or NAS can't be read without
+      your code.</li>
+  </ul>
+
+  <div class="warning" role="note">
+    <p><b>Keep your USB stick as safe as your files.</b> So that your files restore by themselves, the code
+      that unlocks them is kept on the stick too. Anyone who has the stick can get your files back, including
+      saved passwords if you brought your browsers or apps.</p>
+    <p>Don't lose it or lend it out, and once your files are on Cherry OS, delete the
+      <code>CHERRY-TRANSFER</code> folder or reformat the stick. If that's not good enough for you, keep your
+      files in your own cloud drive or NAS instead. Only the code goes on the stick then, and the files can't
+      be read without signing in to your storage too.</p>
+  </div>
+
+  <h2>Source code</h2>
+  <p>Cherry Move's source is in the
+    <a href="https://github.com/Cherry-Systems/cherry-os">Cherry OS repository</a>
+    (<code>move/</code> for Windows, macOS and other Linux, <code>desktop/</code> for the Cherry OS app).</p>
+
+  <h2>Runs on</h2>
+  <table>
+    <tr><th>System</th><th>Version</th></tr>
+    <tr><td>Windows</td><td>Windows 10 and 11, x64 and ARM64</td></tr>
+    <tr><td>macOS</td><td>macOS 11 or newer, Apple Silicon and Intel</td></tr>
+    <tr><td>Linux</td><td>Ubuntu, Debian, Linux Mint, Fedora, openSUSE and others</td></tr>
+  </table>
+</main>
+<footer>Cherry Systems · <a href="https://github.com/Cherry-Systems">github.com/Cherry-Systems</a></footer>
+</body>
+</html>

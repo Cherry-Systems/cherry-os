@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Cherry OS
+Description=The Cherry OS logo with a spinning blossom ring
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/cherry
+ScriptFile=/usr/share/plymouth/themes/cherry/cherry.script

@@ -1,0 +1,9 @@
+build/
+out/
+node_modules/
+.wrangler/
+__pycache__/
+*.pyc
+cloud/.dev.vars
+cloud/public/downloads/
+cloud/wrangler.local.jsonc

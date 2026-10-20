@@ -1,0 +1,77 @@
+# Cherry OS boot splash: the cherry inside a spinning ring on a deep cherry background.
+# Also shows the disk-encryption password prompt and boot messages.
+# Images come from scripts/make-artwork.py (plymouth-logo.png 220px, spinner.png 300px).
+
+Window.SetBackgroundTopColor(0.10, 0.03, 0.08);
+Window.SetBackgroundBottomColor(0.24, 0.04, 0.14);
+
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+scale = Math.Min(screen_w, screen_h) * 0.30 / 300;
+
+logo_image = Image("plymouth-logo.png");
+logo_image = logo_image.Scale(Math.Int(220 * scale), Math.Int(220 * scale));
+spinner_image = Image("spinner.png");
+spinner_image = spinner_image.Scale(Math.Int(300 * scale), Math.Int(300 * scale));
+
+centre_x = screen_w / 2;
+centre_y = screen_h / 2 - screen_h * 0.04;
+
+logo = Sprite(logo_image);
+logo.SetPosition(centre_x - 110 * scale, centre_y - 110 * scale, 1);
+spinner = Sprite(spinner_image);
+spinner.SetPosition(centre_x - 150 * scale, centre_y - 150 * scale, 2);
+
+title_image = Image.Text("Cherry OS", 1, 0.85, 0.9, 1, "Sans Bold 28");
+title = Sprite(title_image);
+title.SetPosition(centre_x - title_image.GetWidth() / 2, centre_y + 170 * scale, 1);
+
+text_y = centre_y + 170 * scale + 60;
+frame = 0;
+angle = 0;
+
+fun set_opacity(value) {
+  global.logo.SetOpacity(value);
+  global.spinner.SetOpacity(value);
+  global.title.SetOpacity(value);
+}
+set_opacity(0);
+
+fun refresh_callback() {
+  global.frame = global.frame + 1;
+  set_opacity(Math.Min(global.frame / 40, 1));
+  global.angle = global.angle + 0.07;
+  global.spinner.SetImage(global.spinner_image.Rotate(global.angle));
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+fun centred_text(text, y) {
+  image = Image.Text(text, 1, 1, 1);
+  sprite = Sprite(image);
+  sprite.SetPosition(global.screen_w / 2 - image.GetWidth() / 2, y, 10);
+  return sprite;
+}
+
+fun display_password_callback(prompt, bullets) {
+  stars = "";
+  for (i = 0; i < bullets; i = i + 1) {
+    stars = stars + "*";
+  }
+  if (stars == "") {
+    stars = " ";
+  }
+  global.prompt_sprite = centred_text(prompt, global.text_y);
+  global.bullet_sprite = centred_text(stars, global.text_y + 30);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+fun display_normal_callback() {
+  global.prompt_sprite.SetOpacity(0);
+  global.bullet_sprite.SetOpacity(0);
+}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+
+fun message_callback(text) {
+  global.message_sprite = centred_text(text, global.screen_h - 60);
+}
+Plymouth.SetMessageFunction(message_callback);

@@ -1,0 +1,21 @@
+{
+  "name": "cherry-cloud",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Cherry OS cloud: the package store",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 migrations apply cherry-cloud --local",
+    "migrate:remote": "wrangler d1 migrations apply cherry-cloud --remote",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.20"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261001.1",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.40.0"
+  }
+}
